@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+            content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>particle text</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+<script>
+
+  const canvas = document.querySelector('#canvas')
+  const wW = document.body.offsetWidth
+  const wH = document.body.offsetHeight
+  canvas.width = wW
+  canvas.height = wH
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#000';
+  ctx.font = 'bold 30px Arial';
+  ctx.textAlign = 'center'
+
+  ctx.fillText('aaa', wW / 2, wH / 2)
+
+  Object.values(texts).forEach(item => {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillText(item.text, left, bottom);
+    left += offscreenCanvasCtx.measureText(item.text).width;
+    const data = offscreenCanvasCtx.getImageData(0, 0, width, height);
+    const points = [];
+    // 判断第 i * 4 + 3 位是否为0，获得相对的 x,y 坐标(使用时需乘画布的实际长宽, y 坐标也需要取反向)
+    for (let i = 0, max = data.width * data.height; i < max; i++) {
+      if (data.data[i * 4 + 3]) {
+        points.push({
+          x: (i % data.width) / data.width,
+          y: (i / data.width) / data.height
+        });
+      }
+    }
+    // 保存到一个对象，用于后面的绘制
+    geometry.push({
+      color: item.hsla,
+      points
+    });
+  })
+
+
+</script>
+</html>
