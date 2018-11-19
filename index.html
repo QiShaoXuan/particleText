@@ -19,41 +19,37 @@
 </body>
 <script>
 
-  const canvas = document.querySelector('#canvas')
-  const wW = document.body.offsetWidth
-  const wH = document.body.offsetHeight
-  canvas.width = wW
-  canvas.height = wH
-  const ctx = canvas.getContext('2d');
+  // const canvas = document.querySelector('#canvas')
+  // const wW = document.body.offsetWidth
+  // const wH = document.body.offsetHeight
+  // canvas.width = wW
+  // canvas.height = wH
+  // const ctx = canvas.getContext('2d');
+  //
+  // ctx.fillStyle = '#000';
+  // ctx.font = 'bold 30px Arial';
+  // ctx.textAlign = 'center'
+  //
+  // ctx.fillText('aaa', wW / 2, wH / 2)
+  getTextData('hello, word')
 
-  ctx.fillStyle = '#000';
-  ctx.font = 'bold 30px Arial';
-  ctx.textAlign = 'center'
+  function getTextData(text) {
+    const c = document.create('canvas')
+    const w = c.width
+    const h = c.height
+    const wW = document.body.offsetWidth
+    const wH = document.body.offsetHeight
+    const ctx = c.getContext()
 
-  ctx.fillText('aaa', wW / 2, wH / 2)
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 10px Arial';
+    const measure = ctx.measureText(text); // 测量文字，用来获取宽度
+    const size = 0.8;
+// 宽高分别达到屏幕0.8时的size
+    const fSize = Math.min(h * size * 10 / lineHeight, wW * size * 10 / measure.width);  // 10像素字体行高 lineHeight=7 magic
+    ctx.font = `bold ${fSize}px Arial`;
 
-  Object.values(texts).forEach(item => {
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillText(item.text, left, bottom);
-    left += offscreenCanvasCtx.measureText(item.text).width;
-    const data = offscreenCanvasCtx.getImageData(0, 0, width, height);
-    const points = [];
-    // 判断第 i * 4 + 3 位是否为0，获得相对的 x,y 坐标(使用时需乘画布的实际长宽, y 坐标也需要取反向)
-    for (let i = 0, max = data.width * data.height; i < max; i++) {
-      if (data.data[i * 4 + 3]) {
-        points.push({
-          x: (i % data.width) / data.width,
-          y: (i / data.width) / data.height
-        });
-      }
-    }
-    // 保存到一个对象，用于后面的绘制
-    geometry.push({
-      color: item.hsla,
-      points
-    });
-  })
-
+  }
 
 </script>
 </html>
