@@ -1,54 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-            content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>particle text</title>
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>particle text</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 </body>
 <script>
+  class getShape{
+    constructor(x, y, texte){
+      this.x = x;
+      this.y = y;
+      this.size = 150;
 
-  // const canvas = document.querySelector('#canvas')
-  // const wW = document.body.offsetWidth
-  // const wH = document.body.offsetHeight
-  // canvas.width = wW
-  // canvas.height = wH
-  // const ctx = canvas.getContext('2d');
-  //
-  // ctx.fillStyle = '#000';
-  // ctx.font = 'bold 30px Arial';
-  // ctx.textAlign = 'center'
-  //
-  // ctx.fillText('aaa', wW / 2, wH / 2)
-  getTextData('hello, word')
+      this.text = texte;
+      this.placement = [];
+      this.vectors = [];
+    }
+  }
 
-  function getTextData(text) {
-    const c = document.create('canvas')
-    const w = c.width
-    const h = c.height
-    const wW = document.body.offsetWidth
-    const wH = document.body.offsetHeight
-    const ctx = c.getContext()
 
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold 10px Arial';
-    const measure = ctx.measureText(text); // 测量文字，用来获取宽度
-    const size = 0.8;
-// 宽高分别达到屏幕0.8时的size
-    const fSize = Math.min(h * size * 10 / lineHeight, wW * size * 10 / measure.width);  // 10像素字体行高 lineHeight=7 magic
-    ctx.font = `bold ${fSize}px Arial`;
+  function Shape(x, y, texte){
+    this.x = x;
+    this.y = y;
+    this.size = 150;
 
+    this.text = texte;
+    this.placement = [];
+    //this.vectors = [];
+  }
+  Shape.prototype.getValue = function(){
+
+    //draw the shape
+    context.textAlign = "center";
+    context.font =  this.size + "px arial";
+    context.fillText(this.text, this.x, this.y);
+
+    var idata = context.getImageData(0, 0, W, H);
+    var buffer32 = new Uint32Array(idata.data.buffer);
+
+    for(var j=0; j < H; j += gridY){
+      for(var i=0 ; i < W; i += gridX){
+        if(buffer32[j * W + i]){
+          var particle = new Particle(i, j, type);
+          this.placement.push(particle);
+        }
+      }
+    }
+
+    context.clearRect(0, 0, W, H);
   }
 
 </script>
