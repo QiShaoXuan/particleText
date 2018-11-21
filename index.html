@@ -11,50 +11,198 @@
       height: 100%;
       margin: 0;
       padding: 0;
+      overflow: hidden;
     }
   </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 </body>
+<script src="refrence/js/utils.js"></script>
 <script>
-  function getShapeData(text, params = {
-    w: -1,
-    h: -1,
-    x: -1,
-    y: -1,
-    fontSize: 150
-  }) {
-    let size = params.fontSize
-    let placement = [];
+  class Particle {
+    constructor(params = {
+      ctx: null,
+      x: 0,
+      y: 0,
+      radVal:2,
+      duration:.4
+    }) {
+      this.radius = 1.1
+      this.radVal = params.radVal
+      this.futurRadius = utils.randomInt(this.radVal, this.radVal + 3) //[1.1,5.1]
 
-    let x = params.x
-    let y = params.y
+      this.x = params.x
+      this.y = params.y
+      this.speed = .1 // 离散程度
+      this.duration = params.duration
 
-    const c = document.createElement('canvas')
-    c.width = params.w
-    c.height = params.h
-    const context = c.getContext('2d')
-    //draw the shape
-    context.textAlign = "center"
-    context.font = `${size}px arial`
-    context.fillText(text, x, y)
+      this.dying = false
 
-    var idata = context.getImageData(0, 0, W, H)
-    var buffer32 = new Uint32Array(idata.data.buffer)
+      this.base = [params.x, params.y]
 
-    for (var j = 0; j < H; j += gridY) {
-      for (var i = 0; i < W; i += gridX) {
-        if (buffer32[j * W + i]) {
-          var particle = new Particle(i, j, type)
-          placement.push(particle);
-        }
-      }
+      this.vx = 0
+      this.vy = 0
+      this.friction = .99
+      this.gravity = 0 // 重力
+      this.ctx = params.ctx
+
+      let colors = [
+        '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5',
+        '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50',
+        '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
+        '#FF5722'
+      ]
+      this.color = colors[Math.floor(Math.random() * colors.length)]
+
+      this.setSpeed(utils.randomInt(.1, .5))
+      this.setHeading(utils.randomInt(utils.degreesToRads(0), utils.degreesToRads(360)))
     }
 
-    return placement
+    setSpeed (speed) {
+      var heading = Math.atan2(this.vy, this.vx)
+      this.vx = Math.cos(heading) * speed
+      this.vy = Math.sin(heading) * speed
+    }
+
+    setHeading (heading) {
+      var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy)
+      this.vx = Math.cos(heading) * speed
+      this.vy = Math.sin(heading) * speed
+    }
+
+    update (W,H) {
+      this.x += this.vx
+      this.y += this.vy
+      this.vy += this.gravity
+
+      this.vx *= this.friction
+      this.vy *= this.friction
+
+      if (this.radius < this.futurRadius && this.dying === false) {
+        this.radius += this.duration
+      } else {
+        this.dying = true
+      }
+      if (this.dying === true) {
+        this.radius -= this.duration
+      }
+
+      let ctx = this.ctx
+      ctx.save()
+      ctx.fillStyle = this.color
+      ctx.beginPath()
+      ctx.arc(this.x, this.y, this.radius, Math.PI * 2, false)
+      ctx.closePath()
+      ctx.fill()
+      ctx.restore()
+
+      if (this.y < 0 || this.radius < 1) {
+        this.x = this.base[0]
+        this.y = this.base[1]
+        this.dying = false
+        this.radius = 1.1
+        this.setSpeed(this.speed)
+        this.futurRadius = utils.randomInt(this.radVal, this.radVal + 3)
+        this.setHeading(utils.randomInt(utils.degreesToRads(0), utils.degreesToRads(360)))
+      }
+    }
   }
 
+  class particleText {
+    constructor(params = {
+      container: null,
+      width: 0,
+      height: 0,
+    }) {
+      // 需要判断 container 是否为canvas 不是则添加
+      if (params.container.tagName === 'CANVAS') {
+        this.c = params.container
+      } else {
+        let c = document.createElement('canvas')
+        params.container.appendChild(c)
+        this.c = params.container.querySelector('canvas')
+      }
 
+      this.W = params.width
+      this.H = params.height
+
+      this.c.width = this.W
+      this.c.height = this.H
+
+      this.ctx = this.c.getContext('2d')
+    }
+    draw(text,params = {}){
+      this.duration = params.duration || .4 // 周期
+      this.radius = params.radius || 2 // 半径
+      this.gridY = params.resolution || 6 // 分辨率
+      this.gridX = params.resolution || 6 // 分辨率
+      this.fontSize = params.fontSize || 150
+
+      let word = this.getShapeData(text)
+      let ctx = this.ctx
+      let W = this.W
+      let H = this.H
+      ctx.clearRect(0, 0, W, H)
+      function drawFrame() {
+        window.requestAnimationFrame(drawFrame)
+        ctx.clearRect(0, 0, W, H)
+        for (var i = 0; i < word.length ;i++) {
+          word[i].update()
+        }
+      }
+      drawFrame()
+    }
+
+    getShapeData(text) {
+
+      let size = this.fontSize
+      let placement = [];
+
+      let W = this.W
+      let H = this.H
+
+      const ctx = this.ctx
+      ctx.clearRect(0, 0, W, H)
+      ctx.textAlign = "center"
+      ctx.font = `${size}px arial`
+      ctx.fillText(text, W/2, H/2)
+
+      var idata = ctx.getImageData(0, 0, W, H)
+      var buffer32 = new Uint32Array(idata.data.buffer)
+
+      for (var j = 0; j < H; j += this.gridY) {
+        for (var i = 0; i < W; i += this.gridX) {
+          if (buffer32[j * W + i]) {
+            var particle = new Particle({
+              ctx: this.ctx,
+              x:i,
+              y: j,
+              radVal:this.radius,
+              duration:this.duration
+            })
+            placement.push(particle)
+          }
+        }
+      }
+      ctx.clearRect(0, 0, W, H)
+      return placement
+    }
+  }
+
+  let pt = new particleText({
+    container: document.querySelector('#canvas'),
+    width: document.body.offsetWidth,
+    height: document.body.offsetHeight,
+  })
+
+  pt.draw('hello, world',{
+    resolution:10,
+  })
+  setTimeout(() => {
+    pt.draw('goodbye, world',{
+      resolution:6,
+    })
+  },5*1000)
 </script>
 </html>
