@@ -1,5 +1,8 @@
 ## 粒子文字 (particle text)
 
+### view on line
+https://qishaoxuan.github.io/particleText/
+
 ### 使用 (how to use)
 ```html
 <script src="dist/particleText.min.js"></script>
